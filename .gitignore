@@ -223,3 +223,24 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Model/training artifacts
+checkpoints/
+runs/
+wandb/
+*.keras
+*.h5
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# Hugging Face / experiment caches if created inside repo
+.cache/
+hf_cache/
+huggingface_cache/
+
+# Local scratch files
+*.tmp
+*.bak
