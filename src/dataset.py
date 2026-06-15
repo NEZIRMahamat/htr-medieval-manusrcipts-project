@@ -11,6 +11,7 @@ load_dotenv()
 data_dir = "data"
 outputs_dir = "outputs"
 
+## ------ Téléchargement du dataset CATMuS depuis Hugging Face Hub et sauvegarde sur local disk
 
 # Login to Hugging Face Hub
 def login_to_hf() -> None:
@@ -66,6 +67,9 @@ def main_load_dataset_from_hf():
     load_save_catmus_dataset(save_path_medieval, save_path_segm)
 
 
+
+## ------ Chargement du dataset CATMuS HF depuis le disque local
+
 def load_data_from_dir(disk_path) -> dict:
     """
     Load a HuggingFace DatasetDict saved with `save_to_disk`.
@@ -73,7 +77,7 @@ def load_data_from_dir(disk_path) -> dict:
     return load_from_disk(disk_path)
 
 
-## AUDIT DATASET
+## ------ AUDIT DATASET
 def audit_dataset(dataset):
     """
     Inspect the CATMuS segmentation DatasetDict structure.
@@ -158,7 +162,7 @@ def main_audit():
     audit_dataset(dataset)
     visualize_dataset_audit(dataset, num_examples=5)
 
-## SCELLAGE DATASET TEST
+## ------ SCELLAGE DATASET TEST
 
 # étape final : sceller le dataset test pour éviter les fuites de données
 # Evaluation du modèle sur le dataset test (only après l'entrainement et la validation)
