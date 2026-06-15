@@ -6,9 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
-# Dossier local
+# Dossier & fichiers local
 data/
+outputs/
 notes/
+src/001_scripts_collab_kaggle.ipynb
 
 
 # Distribution / packaging
