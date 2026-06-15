@@ -84,14 +84,14 @@ def generate_line_mask_from_polygons(image_size: tuple[int, int], polygons: list
         image_size: PIL image size as (width, height).
         polygons: CATMuS line polygons in image coordinates.
     """
-    mask = PILImage.new("L", image_size, 0)
+    mask = PILImage.new("L", image_size, 0) # Create a blank mask image (grayscale, 0=black) with the same size as the original image
     draw = ImageDraw.Draw(mask)
 
     for polygon in polygons:
         if polygon:
             draw.polygon(polygon, outline=1, fill=1)
 
-    return np.array(mask)
+    return np.array(mask) # mask (height, width) with values in {0, 1}
 
 
 def extract_line_polygons(example: dict) -> list:
@@ -102,6 +102,7 @@ def extract_line_polygons(example: dict) -> list:
     polygons = objects.get("polygons", [])
     object_types = objects.get("type", [])
 
+    # Extract only polygons corresponding to "line" objects, and filter out empty polygons
     return [
         polygon
         for polygon, object_type in zip(polygons, object_types)
@@ -133,9 +134,12 @@ def preprocess_image(
         float32 values in [0, 1].
     
     """
-    image_rgb = pil_to_rgb(image)
+    # This ensures that the image has three color channels (Red, Green, Blue) => 3 in shape, regardless of its original format.
+    image_rgb = pil_to_rgb(image) # Convert the input image to RGB format. 
     image_resized = image_rgb.resize(target_size_to_pil_size(target_size), PILImage.Resampling.BILINEAR)
-    return np.asarray(image_resized, dtype=np.float32) / 255.0
+    image_preprocessed = np.asarray(image_resized, dtype=np.float32) / 255.0 # Convert the resized image to a numpy array and normalize pixel values to [0, 1].
+    
+    return image_preprocessed # Image in shape (height, width, 3) with float32 values in [0, 1]
 
 
 def preprocess_binary_mask(
@@ -155,9 +159,9 @@ def preprocess_binary_mask(
     mask_preprocessed = (np.asarray(mask_image) > 0).astype(np.float32)
 
     if add_channel:
-        mask_preprocessed = mask_preprocessed[..., np.newaxis]
+        mask_preprocessed = mask_preprocessed[..., np.newaxis] # Add a channel dimension to the mask, resulting in shape (height, width, 1) 
 
-    return mask_preprocessed
+    return mask_preprocessed # mask in shape (height, width, 1) with float32 values in {0, 1}
 
 
 def preprocess_image_and_mask(
@@ -220,7 +224,8 @@ def preprocess_images_and_masks(
     dataset_path: str | None = None,
 ) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """
-    Eagerly preprocess a split into lists. Useful for tiny debug subsets and visualization.
+    Eagerly preprocess a split into lists. 
+    Useful for tiny debug subsets and visualization.
     """
     images: list[np.ndarray] = []
     masks: list[np.ndarray] = []

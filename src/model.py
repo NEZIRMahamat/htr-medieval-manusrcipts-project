@@ -48,26 +48,26 @@ def build_unet(input_shape, n_filters=32, dropout_rate=0.1):
     inputs = Input(shape=input_shape)
 
     # encoder
-    skip1, x1 = build_encoder(inputs, n_filters)
+    skip1, x1 = build_encoder(inputs, n_filters) # n_filters : 32
     x1 = Dropout(dropout_rate)(x1)  # Dropout layer after the first encoder block
     
-    skip2, x2 = build_encoder(x1, n_filters * 2)
+    skip2, x2 = build_encoder(x1, n_filters * 2) # n_filters * 2 : 64
     x2 = Dropout(dropout_rate)(x2)  # Dropout layer after the second encoder block
     
-    skip3, x3 = build_encoder(x2, n_filters * 4)
+    skip3, x3 = build_encoder(x2, n_filters * 4) # n_filters * 4 : 128
     x3 = Dropout(dropout_rate)(x3)  # Dropout layer after the third encoder block
     
-    skip4, x4 = build_encoder(x3, n_filters * 8)
+    skip4, x4 = build_encoder(x3, n_filters * 8) # n_filters * 8 : 256
     x4 = Dropout(dropout_rate)(x4)  # Dropout layer after the fourth encoder block
 
     # bottleneck
     x_bottleneck = double_conv_block(x4, n_filters * 16)
     
     # decoder
-    y1 = build_decoder(x_bottleneck, skip4, n_filters * 8)
-    y2 = build_decoder(y1, skip3, n_filters * 4)
-    y3 = build_decoder(y2, skip2, n_filters * 2)
-    y4 = build_decoder(y3, skip1, n_filters)
+    y1 = build_decoder(x_bottleneck, skip4, n_filters * 8) # n_filters * 8 : 256 (decoder 1)
+    y2 = build_decoder(y1, skip3, n_filters * 4) # n_filters * 4 : 128 (decoder 2)
+    y3 = build_decoder(y2, skip2, n_filters * 2) # n_filters * 2 : 64 (decoder 3)
+    y4 = build_decoder(y3, skip1, n_filters) # n_filters : 32 (decoder 4)
 
     # model
     outputs = Conv2D(1, (1, 1), activation="sigmoid")(y4)
