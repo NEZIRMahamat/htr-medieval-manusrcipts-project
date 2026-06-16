@@ -2,15 +2,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from io import BytesIO
 from pathlib import Path
 from typing import Any
 
 import requests
 import torch
+from dotenv import load_dotenv
 from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 
+load_dotenv()
+token = os.environ.get("HF_TOKEN")
 
 DEFAULT_DATASET_NAME = "CATMuS/medieval"
 DEFAULT_CONFIG = "default"
@@ -32,9 +36,6 @@ def load_catmus_rows(
     split: str,
     num_samples: int,
 ) -> list[dict[str, Any]]:
-    """
-    Load sample rows from Hugging Face Dataset Viewer without downloading CATMuS.
-    """
     payload = get_json(
         f"{DATASETS_SERVER}/rows",
         {
@@ -54,9 +55,6 @@ def load_catmus_first_rows(
     split: str,
     num_samples: int,
 ) -> list[dict[str, Any]]:
-    """
-    Fallback endpoint for the first available sample rows.
-    """
     payload = get_json(
         f"{DATASETS_SERVER}/first-rows",
         {
@@ -75,11 +73,12 @@ def fetch_image(image_url: str) -> Image.Image:
 
 
 def load_trocr(model_name: str, device: torch.device):
-    processor = TrOCRProcessor.from_pretrained(model_name)
+    processor = TrOCRProcessor.from_pretrained(model_name, token=token)
     model = VisionEncoderDecoderModel.from_pretrained(
         model_name,
         low_cpu_mem_usage=True,
         use_safetensors=False,
+        token=token,
     )
     model.to(device)
     model.eval()

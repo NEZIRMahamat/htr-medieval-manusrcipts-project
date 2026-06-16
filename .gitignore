@@ -244,3 +244,5 @@ huggingface_cache/
 # Local scratch files
 *.tmp
 *.bak
+
+.env
