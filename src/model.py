@@ -1,13 +1,13 @@
 from tensorflow.keras.layers import (
     BatchNormalization,
     Dropout,
-    Input, # Input layer (entrée du modèle, spécifie la forme des données d'entrée shape)
-    Conv2D, # Convolution 2D
-    MaxPooling2D, # Max Pooling 2D
-    UpSampling2D, # UpSampling 2D
-    Conv2DTranspose, # Convolution Transpose 2D (ou Deconvolution, decoder)
-    concatenate # Concatenate layers
-    ) # Type : ignore
+    Input, 
+    Conv2D, 
+    MaxPooling2D,
+    UpSampling2D, 
+    Conv2DTranspose, 
+    concatenate 
+    )
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import AdamW
 from tensorflow.keras.losses import MeanSquaredError
@@ -117,7 +117,12 @@ def mean_iou(y_true, y_pred):
     return (intersection + epsilon) / (union + epsilon)
 
 
-def compile_unet_model(input_shape, n_filters=32, dropout_rate=0.1, learning_rate=1e-4, weight_decay=1e-4):
+def compile_unet_model(
+        input_shape, 
+        n_filters=32, 
+        dropout_rate=0.1, 
+        learning_rate=1e-4, 
+        weight_decay=1e-4):
     """
     Compile the U-Net model with the specified parameters.
     """

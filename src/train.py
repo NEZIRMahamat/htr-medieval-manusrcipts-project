@@ -2,33 +2,22 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
+import time
 from tqdm.auto import tqdm
 import os
-
+import pandas as pd
 import numpy as np
 import tensorflow as tf
 
-try:
-    from .model import compile_unet_model
-    from .utils import (
-        DEFAULT_IMAGE_SIZE,
-        load_segmentation_dataset,
-        # preprocess_image_and_mask,
-        iter_preprocessed_images_and_masks,
-        select_split_subset,
-        preprocess_images_and_masks, # pour train sur le dataset global
-    )
-except ImportError:
-    from model import compile_unet_model
-    from utils import (
-        DEFAULT_IMAGE_SIZE,
-        load_segmentation_dataset,
-        iter_preprocessed_images_and_masks,
-        # déjà implemente le generator pour preprocess_image_and_mask
-        # (juste pour le debug/sinon le global (tout) preprocess_images_and_masks)
-        select_split_subset,
-        preprocess_images_and_masks, # pour train sur le dataset global
-    )
+from .model import compile_unet_model
+from .utils import (
+    DEFAULT_IMAGE_SIZE,
+    load_segmentation_dataset,
+    iter_preprocessed_images_and_masks,
+    select_split_subset,
+    preprocess_images_and_masks, # pour train sur le dataset global
+)
 
 
 def configure_tensorflow() -> None:
@@ -218,59 +207,26 @@ def train_unet_model(
     model.save(model_save_path)
     
     return history
-    
 
-
-def main_train_model(running_mode: str = "debug",) -> None:
+def save_loss_and_metrics(history: tf.keras.callbacks.History, output_dir: str, run_version: str) -> None:
     """
-    Train the U-Net model with a memory-safe preprocessing pipeline.
+    Save training loss and metrics to a json file.
     """
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, f"training_history_{run_version}.json")
 
-    # Config ft
-    configure_tensorflow()
+    history_dict = {
+        "epoch": list(range(1, len(history.history["loss"]) + 1)),
+        "loss": history.history["loss"],
+        "val_loss": history.history["val_loss"],
+        "dice_coefficient": history.history.get("dice_coefficient", []),
+        "val_dice_coefficient": history.history.get("val_dice_coefficient", []),
+        "mean_iou": history.history.get("mean_iou", []),
+        "val_mean_iou": history.history.get("val_mean_iou", [])
+    }
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(history_dict, f, ensure_ascii=False, indent=2)
 
-    # Arguments en dur pour le debug
-    model_save_path = os.path.join("outputs", "checkpoints", "unet_debug.keras")
-    dataset_path = os.path.join("data", "segment_data")
-    batch_size = 8
-    epochs = 10
-    image_size = (256, 256)
-    n_filters = 32 # default n_filters : 32 (number of filters in the first encoder block, doubles at each subsequent block)
-    max_train_examples = 100
-    max_val_examples = 10 # 10 pour test (finalement 100 ou plus pour le vrai training)
-    # running_mode vient du CLI: "debug" ou "full".
-    
-    # U-Net modèle
-    input_shape = (image_size[0], image_size[1], 3)
-    model_unet = compile_unet_model(
-        input_shape=input_shape,
-        n_filters=n_filters,
-        dropout_rate=0.1, 
-        learning_rate=1e-4, 
-        weight_decay=1e-4
-    )
-
-    # datasets
-    dataset_train, dataset_val = train_val_dataset_preprocessed(
-        dataset_path=dataset_path,
-        image_size=image_size,
-        batch_size=batch_size,
-        max_train_examples=max_train_examples,
-        max_val_examples=max_val_examples,
-        running_mode=running_mode,
-    )
-
-    # train modèle
-    history = train_unet_model(
-        model=model_unet,
-        dataset_train=dataset_train,
-        dataset_val=dataset_val,
-        epochs=epochs,
-        model_save_path=model_save_path,
-        running_mode=running_mode,
-    )
-
-    visualize_history(history)
 
 def visualize_history(history: tf.keras.callbacks.History) -> None:
     """
@@ -301,10 +257,75 @@ def visualize_history(history: tf.keras.callbacks.History) -> None:
     plt.tight_layout()
     plt.show()
 
-    
+## ------ Main, debug code, CLI , rapide ------
+def main_train_model(running_mode: str = "debug",) -> None:
+    """
+    Train the U-Net model with a memory-safe preprocessing pipeline.
+    """
+
+    # Config ft
+    configure_tensorflow()
+
+    # Arguments en dur pour le debug
+    model_save_path = os.path.join("outputs", "checkpoints", "unet_debug.keras")
+    dataset_path = os.path.join("data", "segment_data")
+    batch_size = 4 # 4 pour reduire la memoire RAM
+    epochs = 10
+    image_size = (256, 256)
+    n_filters = 32 # default n_filters : 32 (number of filters in the first encoder block, doubles at each subsequent block)
+
+    exmaples_total_model = 400 # total examples for the model (train + val + test)
+
+    max_train_examples = int(0.8 * exmaples_total_model) # je prends 80% du train dataset (pour training) et 10% pour val dataset (pour validation), phase final : 10% dataset (pour test)
+    max_val_examples = int(0.1 * exmaples_total_model) # val 10% du train dataset
+    # running_mode only : "debug" ou "full".
+    print(f"Running mode: {running_mode}. \n"
+          f"Max train examples: {max_train_examples}, \n"
+          f"Max val examples: {max_val_examples}, \n"          
+          f"Epochs: {epochs}, Model save path: {model_save_path}, \n"
+          f"Image size: {image_size}, Batch size: {batch_size}, \n")
+    # U-Net modèle
+    input_shape = (image_size[0], image_size[1], 3)
+    model_unet = compile_unet_model(
+        input_shape=input_shape,
+        n_filters=n_filters,
+        dropout_rate=0.1,
+        learning_rate=1e-4,
+        weight_decay=1e-4
+    )
+
+    # datasets
+    dataset_train, dataset_val = train_val_dataset_preprocessed(
+        dataset_path=dataset_path,
+        image_size=image_size,
+        batch_size=batch_size,
+        max_train_examples=max_train_examples,
+        max_val_examples=max_val_examples,
+        running_mode=running_mode,
+    )
+
+    # train modèle
+    history = train_unet_model(
+        model=model_unet,
+        dataset_train=dataset_train,
+        dataset_val=dataset_val,
+        epochs=epochs,
+        model_save_path=model_save_path,
+        running_mode=running_mode,
+    )
+    # Save training history to a text file
+    run_version = f"v_{time.strftime('%M%S')}" # v_minutesseconds like v_2233, minutes : 22, seconds: 33
+    save_loss_and_metrics(history, output_dir=os.path.join("outputs", "metrics"), run_version=run_version)
+
+    # visualize_history(history)
 
 
 def parse_args() -> argparse.Namespace:
+    """
+    Parse command-line arguments for training the U-Net model.
+    Returns:
+        argparse.Namespace: Parsed command-line arguments.
+    """
     parser = argparse.ArgumentParser(description="Train U-Net on CATMuS line segmentation.")
     parser.add_argument("--running-mode", choices=["debug", "full"], default="debug")
     return parser.parse_args()
