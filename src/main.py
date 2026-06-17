@@ -41,4 +41,8 @@ def check_tensorflow_cpu() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(check_tensorflow_cpu())
+    print("Verification de l'installation de TensorFlow et du CPU...")
+    file_keras = os.listdir(os.path.join("outputs", "checkpoints"))
+    model_path = os.path.join("outputs", "checkpoints", file_keras[-1])  # Use the last saved model (.keras) checkpoint
+    print(f"Evaluating model: {model_path}\n")
+    # raise SystemExit(check_tensorflow_cpu())

@@ -10,8 +10,8 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 
-from .model import compile_unet_model
-from .utils import (
+from model import compile_unet_model
+from utils import (
     DEFAULT_IMAGE_SIZE,
     load_segmentation_dataset,
     iter_preprocessed_images_and_masks,
@@ -196,7 +196,7 @@ def train_unet_model(
     ]
 
     if importlib.util.find_spec("tensorboard") is not None:
-        callbacks.append(tf.keras.callbacks.TensorBoard(log_dir=log_dir))
+        callbacks.append(tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1))
 
     history = model.fit(
         dataset_train,
@@ -204,7 +204,6 @@ def train_unet_model(
         epochs=epochs,
         callbacks=callbacks,
     )
-    model.save(model_save_path)
     
     return history
 
@@ -267,21 +266,21 @@ def main_train_model(running_mode: str = "debug",) -> None:
     configure_tensorflow()
 
     # Arguments en dur pour le debug
-    model_save_path = os.path.join("outputs", "checkpoints", "unet_debug.keras")
+    model_save_path = os.path.join("outputs", "checkpoints", "unet-segmentation.keras")
     dataset_path = os.path.join("data", "segment_data")
     batch_size = 4 # 4 pour reduire la memoire RAM
-    epochs = 10
+    epochs = 15
     image_size = (256, 256)
     n_filters = 32 # default n_filters : 32 (number of filters in the first encoder block, doubles at each subsequent block)
 
-    exmaples_total_model = 400 # total examples for the model (train + val + test)
+    examples_total_model = 600 # total examples for the model (train + val + test)
 
-    max_train_examples = int(0.8 * exmaples_total_model) # je prends 80% du train dataset (pour training) et 10% pour val dataset (pour validation), phase final : 10% dataset (pour test)
-    max_val_examples = int(0.1 * exmaples_total_model) # val 10% du train dataset
+    max_train_examples = int(0.8 * examples_total_model) # je prends 80% du train dataset (pour training) et 10% pour val dataset (pour validation), phase final : 10% dataset (pour test)
+    max_val_examples = int(0.1 * examples_total_model) # val 10% du train dataset
     # running_mode only : "debug" ou "full".
     print(f"Running mode: {running_mode}. \n"
           f"Max train examples: {max_train_examples}, \n"
-          f"Max val examples: {max_val_examples}, \n"          
+          f"Max val examples: {max_val_examples}, \n"
           f"Epochs: {epochs}, Model save path: {model_save_path}, \n"
           f"Image size: {image_size}, Batch size: {batch_size}, \n")
     # U-Net modèle
@@ -333,7 +332,17 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
-
+    start_time = time.time()
+    print(f"\nStarting training at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
+    print(f"Running mode: {args.running_mode}")
+    print("Training U-Net model...\n")
+    
     main_train_model(
         running_mode=args.running_mode,
     )
+
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"\n\nTraining completed at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))}")
+    print(f"Total training time: {elapsed_time:.2f} seconds / ({elapsed_time / 60:.2f} minutes)\n\n")

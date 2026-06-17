@@ -11,24 +11,14 @@ import tensorflow as tf
 from datasets import Image as HFImage
 from scipy.ndimage import find_objects, label
 
-try:
-    from .model import combined_loss, dice_coefficient, mean_iou
-    from .utils import (
-        DEFAULT_IMAGE_SIZE,
-        get_image_file_name,
-        load_segmentation_dataset,
-        preprocess_image_and_mask,
-        select_split_subset,
-    )
-except ImportError:
-    from model import combined_loss, dice_coefficient, mean_iou
-    from utils import (
-        DEFAULT_IMAGE_SIZE,
-        get_image_file_name,
-        load_segmentation_dataset,
-        preprocess_image_and_mask,
-        select_split_subset,
-    )
+from model import combined_loss, dice_coefficient, mean_iou
+from utils import (
+    DEFAULT_IMAGE_SIZE,
+    get_image_file_name,
+    load_segmentation_dataset,
+    preprocess_image_and_mask,
+    select_split_subset,
+)
 
 
 def load_trained_model(model_path: str) -> tf.keras.Model:
@@ -526,11 +516,13 @@ def main_evaluate() -> None:
     """
     Run evaluation with hardcoded development parameters.
     """
-    model_path = os.path.join("outputs", "checkpoints", "unet_debug.keras")
+    file_keras = os.listdir(os.path.join("outputs", "checkpoints"))
+    model_path = os.path.join("outputs", "checkpoints", file_keras[-1])  # Use the last saved model (.keras) checkpoint
+    print(f"Evaluating model: {model_path}\n")
     dataset_path = os.path.join("data", "segment_data")
     split = "validation"
     image_size = (256, 256)
-    max_examples = int(0.1 * 400)  # 10% of the total dataset (400 examples) for evaluation
+    max_examples = int(0.1 * 600)  # 10% of the total dataset (600 examples) for evaluation
     threshold = 0.5
     min_area = 20 # Minimum area in model pixels to consider a connected component as a valid line.
     border_margin = 0 # Minimum distance in model pixels from the image border to consider a connected component as valid.

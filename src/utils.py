@@ -76,6 +76,22 @@ def save_masks_to_disk(mask: np.ndarray, save_dir: str, mask_file_name: str) -> 
     return mask_path
 
 
+def extract_line_polygons(example: dict) -> list:
+    """
+    Extract line-level polygons from a CATMuS segmentation example.
+    """
+    objects = example.get("objects") or {}
+    polygons = objects.get("polygons", [])
+    object_types = objects.get("type", [])
+
+    # Extract only polygons corresponding to "line" objects, and filter out empty polygons
+    return [
+        polygon
+        for polygon, object_type in zip(polygons, object_types)
+        if object_type == "line" and polygon
+    ]
+
+
 def generate_line_mask_from_polygons(image_size: tuple[int, int], polygons: list) -> np.ndarray:
     """
     Generate a binary line mask from CATMuS polygons.
@@ -92,22 +108,6 @@ def generate_line_mask_from_polygons(image_size: tuple[int, int], polygons: list
             draw.polygon(polygon, outline=1, fill=1)
 
     return np.array(mask) # mask (height, width) with values in {0, 1}
-
-
-def extract_line_polygons(example: dict) -> list:
-    """
-    Extract line-level polygons from a CATMuS segmentation example.
-    """
-    objects = example.get("objects") or {}
-    polygons = objects.get("polygons", [])
-    object_types = objects.get("type", [])
-
-    # Extract only polygons corresponding to "line" objects, and filter out empty polygons
-    return [
-        polygon
-        for polygon, object_type in zip(polygons, object_types)
-        if object_type == "line" and polygon
-    ]
 
 
 def pil_to_rgb(image: PILImage.Image | np.ndarray) -> PILImage.Image:
