@@ -5,6 +5,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+import os
 
 import torch
 from datasets import Dataset, DatasetDict, load_dataset
@@ -17,8 +18,11 @@ from transformers import (
     TrOCRProcessor,
     VisionEncoderDecoderModel,
 )
+from huggingface_hub import login
+from dotenv import load_dotenv
+import peft.utils.save_and_load as peft_save
 
-
+load_dotenv()
 DEFAULT_DATASET_NAME = "CATMuS/medieval"
 DEFAULT_MODEL_NAME = "microsoft/trocr-base-handwritten"
 DEFAULT_OUTPUT_DIR = Path("outputs") / "trocr_lora"
@@ -31,7 +35,8 @@ class TrOCRDataCollator:
     max_target_length: int
 
     def __call__(self, features: list[dict[str, Any]]) -> dict[str, torch.Tensor]:
-        images = [ensure_rgb(feature["im"]) for feature in features]
+        from io import BytesIO
+        images = [Image.open(BytesIO(feature["im"])).convert("RGB") for feature in features]
         texts = [feature["text"] for feature in features]
 
         pixel_values = self.processor(images=images, return_tensors="pt").pixel_values
@@ -64,13 +69,46 @@ def select_samples(dataset: Dataset, max_samples: int | None) -> Dataset:
 
 
 def load_catmus_dataset(args: argparse.Namespace) -> DatasetDict:
-    dataset = load_dataset(args.dataset_name)
-    return DatasetDict(
-        {
-            "train": select_samples(dataset[args.train_split], args.max_train_samples),
-            "eval": select_samples(dataset[args.eval_split], args.max_eval_samples),
-        }
-    )
+    from io import BytesIO
+    print("Loading dataset in streaming mode...")
+    dataset = load_dataset(args.dataset_name, streaming=True)
+    print("Dataset loaded.")
+
+    train_data = dataset[args.train_split]
+    eval_data = dataset[args.eval_split]
+
+    if args.max_train_samples:
+        train_data = train_data.take(args.max_train_samples)
+    if args.max_eval_samples:
+        eval_data = eval_data.take(args.max_eval_samples)
+
+    def collect_samples(stream):
+        print("  entering collect_samples...")
+        samples = []
+        print("  starting loop...")
+        for i, sample in enumerate(stream):
+            print(f"  got sample {i+1} from stream")
+            img = sample["im"]
+            if img.mode != "RGB":
+                img = img.convert("RGB")
+            buf = BytesIO()
+            img.save(buf, format="PNG")
+            samples.append({
+                "im": buf.getvalue(),  # store as bytes
+                "text": sample["text"],
+            })
+            print(f"  loaded sample {i+1}")
+        return samples
+
+    print("Converting train split...")
+    train_data = Dataset.from_list(collect_samples(train_data))
+    print(f"Train ready: {len(train_data)} examples.")
+
+    print("Converting eval split...")
+    eval_data = Dataset.from_list(collect_samples(eval_data))
+    print(f"Eval ready: {len(eval_data)} examples.")
+
+    return DatasetDict({"train": train_data, "eval": eval_data})
 
 
 def configure_model(model: VisionEncoderDecoderModel, processor: TrOCRProcessor) -> None:
@@ -140,6 +178,10 @@ def build_compute_metrics(processor: TrOCRProcessor):
         label_ids = eval_pred.label_ids
         label_ids[label_ids == -100] = processor.tokenizer.pad_token_id
 
+        # clip pred_ids to valid vocabulary range
+        vocab_size = processor.tokenizer.vocab_size
+        pred_ids = pred_ids.clip(0, vocab_size - 1)
+
         predictions = processor.batch_decode(pred_ids, skip_special_tokens=True)
         references = processor.batch_decode(label_ids, skip_special_tokens=True)
 
@@ -173,9 +215,7 @@ def train_one_rank(
         do_eval=True,
         eval_strategy=args.eval_strategy,
         eval_steps=args.eval_steps,
-        save_strategy=args.save_strategy,
-        save_steps=args.save_steps,
-        save_total_limit=args.save_total_limit,
+        save_strategy="no",        # <-- change this
         logging_steps=args.logging_steps,
         learning_rate=args.learning_rate,
         num_train_epochs=args.num_train_epochs,
@@ -193,8 +233,7 @@ def train_one_rank(
         dataloader_num_workers=args.dataloader_num_workers,
         report_to=args.report_to,
         seed=args.seed,
-        use_cpu=args.cpu,
-    )
+        use_cpu=args.cpu)
 
     trainer = Seq2SeqTrainer(
         model=model,
@@ -211,8 +250,26 @@ def train_one_rank(
     train_result = trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
     eval_metrics = trainer.evaluate()
 
-    trainer.save_model(str(run_output_dir / "adapter"))
-    processor.save_pretrained(run_output_dir / "processor")
+    original_get_peft_model_state_dict = peft_save.get_peft_model_state_dict
+
+    def patched_get_peft_model_state_dict(model, *args, **kwargs):
+        if not hasattr(model.config, "vocab_size"):
+            model.config.vocab_size = model.config.decoder.vocab_size
+        return original_get_peft_model_state_dict(model, *args, **kwargs)
+
+    peft_save.get_peft_model_state_dict = patched_get_peft_model_state_dict
+
+    try:
+        adapter_dir = run_output_dir / "adapter"
+        adapter_dir.mkdir(parents=True, exist_ok=True)
+
+        model.save_pretrained(str(adapter_dir))
+        processor.save_pretrained(str(run_output_dir / "processor"))
+
+        print(f"Saved adapter to: {adapter_dir}")
+
+    except Exception as e:
+        print(f"Adapter save failed: {e}") 
 
     metrics = {
         "rank": rank,
@@ -283,22 +340,36 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    processor = TrOCRProcessor.from_pretrained(args.model_name)
-    dataset = load_catmus_dataset(args)
+    hf_token = os.environ.get("HF_TOKEN")
+    if hf_token:
+        try:
+            login(token=hf_token)
+            print("Logged into Hugging Face Hub using HF_TOKEN.")
+        except Exception as exc:
+            print(f"Warning: HF login failed: {exc}")
 
+    print("Loading dataset...")  # load dataset first
+    dataset = load_catmus_dataset(args)
+    print("Dataset ready.")
+
+    print("Loading processor...")  # then load processor
+    processor = TrOCRProcessor.from_pretrained(args.model_name)
+    print("Processor loaded.")
+
+    print("Starting training loop...")
     results = []
     for rank in args.lora_ranks:
         print(f"Starting LoRA fine-tuning with r={rank}")
         result = train_one_rank(rank, dataset, processor, args)
         results.append(result)
-        print(
-            f"Finished r={rank}: "
-            f"CER={result['eval_metrics'].get('eval_cer')}, "
-            f"WER={result['eval_metrics'].get('eval_wer')}"
-        )
 
     save_comparison(results, output_dir)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        input("Press Enter to exit...")
