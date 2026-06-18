@@ -12,6 +12,8 @@ import torch
 from dotenv import load_dotenv
 from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+import math
+import torch.nn.functional as F
 
 load_dotenv()
 token = os.environ.get("HF_TOKEN")
@@ -73,35 +75,94 @@ def fetch_image(image_url: str) -> Image.Image:
 
 
 def load_trocr(model_name: str, device: torch.device):
-    processor = TrOCRProcessor.from_pretrained(model_name, token=token)
+    print("Loading processor...")
+    processor = TrOCRProcessor.from_pretrained(model_name)
+
+    print("Loading model...")
     model = VisionEncoderDecoderModel.from_pretrained(
         model_name,
         low_cpu_mem_usage=True,
         use_safetensors=False,
-        token=token,
     )
+
+    print("Moving model to device...")
     model.to(device)
+
+    print("Setting eval...")
     model.eval()
+
+    print("Done loading.")
+
     return processor, model
 
 
-def transcribe_image(
-    image: Image.Image,
-    processor: TrOCRProcessor,
-    model: VisionEncoderDecoderModel,
-    device: torch.device,
-    max_new_tokens: int = 128,
-) -> str:
-    pixel_values = processor(images=image, return_tensors="pt").pixel_values.to(device)
+# def transcribe_image(
+#     image: Image.Image,
+#     processor: TrOCRProcessor,
+#     model: VisionEncoderDecoderModel,
+#     device: torch.device,
+#     max_new_tokens: int = 128,
+# ) -> str:
+#     pixel_values = processor(images=image, return_tensors="pt").pixel_values.to(device)
 
-    with torch.no_grad():
-        generated_ids = model.generate(
-            pixel_values,
-            max_new_tokens=max_new_tokens,
+#     with torch.no_grad():
+#         generated_ids = model.generate(
+#             pixel_values,
+#             max_new_tokens=max_new_tokens,
+#         )
+
+#     prediction = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+#     return prediction.strip()
+
+
+
+def transcribe_image(
+        image: Image.Image,
+        processor: TrOCRProcessor,
+        model: VisionEncoderDecoderModel,
+        device: torch.device,
+        max_new_tokens: int = 128,
+    ):
+        pixel_values = processor(
+            images=image,
+            return_tensors="pt"
+        ).pixel_values.to(device)
+
+        with torch.no_grad():
+            generated = model.generate(
+                pixel_values,
+                max_new_tokens=max_new_tokens,
+                return_dict_in_generate=True,
+                output_scores=True,
+            )
+
+        prediction = processor.batch_decode(
+            generated.sequences,
+            skip_special_tokens=True,
+        )[0]
+
+        token_confidences = []
+
+        for step_scores, token_id in zip(
+            generated.scores,
+            generated.sequences[0][1:]
+        ):
+            probs = F.softmax(step_scores, dim=-1)
+
+            confidence = probs[0, token_id].item()
+
+            token_confidences.append(confidence)
+
+        line_confidence = (
+            sum(token_confidences) / len(token_confidences)
+            if token_confidences
+            else 0.0
         )
 
-    prediction = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-    return prediction.strip()
+        return {
+            "text": prediction.strip(),
+            "confidence": line_confidence,
+        }
 
 
 def save_image(image: Image.Image, output_dir: Path, index: int) -> str:
@@ -131,6 +192,10 @@ def build_markdown_report(results: list[dict[str, Any]], model_name: str) -> str
                 "",
                 f"PR: {result['prediction']}",
                 "",
+                f"Confidence: {result['confidence']:.4f}",
+                "",
+                f"Needs Review: {result['needs_review']}",
+                "",
                 f"Metadata: `{json.dumps(result['metadata'], ensure_ascii=False)}`",
                 "",
             ]
@@ -140,10 +205,12 @@ def build_markdown_report(results: list[dict[str, Any]], model_name: str) -> str
 
 
 def run_baseline(args: argparse.Namespace) -> list[dict[str, Any]]:
+    print("STEP 1")
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
+        print("STEP 2")
         rows = load_catmus_rows(
             dataset_name=args.dataset_name,
             config=args.config,
@@ -151,26 +218,29 @@ def run_baseline(args: argparse.Namespace) -> list[dict[str, Any]]:
             num_samples=args.num_samples,
         )
     except requests.HTTPError:
+        print("STEP 2 failed, trying to load first rows instead...")
         rows = load_catmus_first_rows(
             dataset_name=args.dataset_name,
             config=args.config,
             split=args.split,
             num_samples=args.num_samples,
         )
-
+    print('step 3')
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
     processor, model = load_trocr(args.model_name, device)
 
     results = []
     for index, row in enumerate(rows, start=1):
+        print('step 4')
         image = fetch_image(row["im"]["src"])
-        prediction = transcribe_image(
+        prediction_result = transcribe_image(
             image=image,
             processor=processor,
             model=model,
             device=device,
             max_new_tokens=args.max_new_tokens,
         )
+        
         image_path = save_image(image, output_dir, index)
 
         metadata = {
@@ -179,16 +249,20 @@ def run_baseline(args: argparse.Namespace) -> list[dict[str, Any]]:
             if key not in {"im", "text"}
         }
         result = {
-            "index": index,
-            "image_path": image_path,
-            "ground_truth": row["text"],
-            "prediction": prediction,
-            "metadata": metadata,
-        }
+        "index": index,
+        "image_path": image_path,
+        "ground_truth": row["text"],
+        "prediction": prediction_result["text"],
+        "confidence": prediction_result["confidence"],
+        "needs_review": prediction_result["confidence"] < 0.60,
+        "metadata": metadata,
+    }
+
         results.append(result)
         print(f"Example {index}")
         print(f"GT: {result['ground_truth']}")
         print(f"PR: {result['prediction']}")
+        print(f"Confidence: {result['confidence']:.4f}")
         print()
 
     json_path = output_dir / "trocr_baseline_examples.json"
