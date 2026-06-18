@@ -1,0 +1,102 @@
+[
+  {
+    "index": 1,
+    "image_path": "outputs/trocr_baseline/images/catmus_line_001.jpg",
+    "ground_truth": "q̃  y paresçio. ffecha ⁊ signada por man de domĩgo ffeĩrs escrͥuan publico de Burgos del rregistͦ de pͦ m̃z escͥuan. ffizierõ abenẽçia en esta maña q̃los dich̃s Sanch̃ ꝑez ⁊",
+    "prediction": "\" Topping the first appearance of the Southern States of America for the first time in the American American American",
+    "confidence": 0.1878681287846782,
+    "needs_review": true,
+    "metadata": {
+      "language": "Castilian",
+      "century": 13,
+      "region": "MainZone",
+      "script_type": "Semihybrida",
+      "shelfmark": "Paris, BnF, esp. 480",
+      "verse": "prose",
+      "genre": "Documents of practice",
+      "project": "HTRomance",
+      "line_type": "DefaultLine",
+      "gen_split": "test"
+    }
+  },
+  {
+    "index": 2,
+    "image_path": "outputs/trocr_baseline/images/catmus_line_002.jpg",
+    "ground_truth": "Toledo. Ioh̃n gãnz rraçionero dela Egl̃ia de Burgos. Aĩ Yuãns uezino de Burgos dela collaçiõ de sãt :icho las pͦ ꝑoz de ssassimõ pusq̃l sanchez",
+    "prediction": "Following the establishment of the British House of Representatives",
+    "confidence": 0.33946180939674375,
+    "needs_review": true,
+    "metadata": {
+      "language": "Castilian",
+      "century": 13,
+      "region": "MainZone",
+      "script_type": "Semihybrida",
+      "shelfmark": "Paris, BnF, esp. 480",
+      "verse": "prose",
+      "genre": "Documents of practice",
+      "project": "HTRomance",
+      "line_type": "DefaultLine",
+      "gen_split": "dev"
+    }
+  },
+  {
+    "index": 3,
+    "image_path": "outputs/trocr_baseline/images/catmus_line_003.jpg",
+    "ground_truth": "bio qͣũdo esta casa arrendo o la ualia en q̃ ffue ap̃çiada el alffaia. Et qͣñto del pã q̃ ffrey pͦ guiralt rreçibiͦo p̃stado qͣndo la casa arrendo. ⁊ el pã q̃ mĩguo q̃ nõ dio dela",
+    "prediction": "The French officials will be transferred to the Spanish police policy and to the state of the",
+    "confidence": 0.33625137474801803,
+    "needs_review": true,
+    "metadata": {
+      "language": "Castilian",
+      "century": 13,
+      "region": "MainZone",
+      "script_type": "Semihybrida",
+      "shelfmark": "Paris, BnF, esp. 480",
+      "verse": "prose",
+      "genre": "Documents of practice",
+      "project": "HTRomance",
+      "line_type": "DefaultLine",
+      "gen_split": "train"
+    }
+  },
+  {
+    "index": 4,
+    "image_path": "outputs/trocr_baseline/images/catmus_line_004.jpg",
+    "ground_truth": "pͦ guiralt ⁊ dela fiaduria ⁊ debdura q̃ sobr̃l ffizerõ q̃ daqͥ adelant̃ nõ ssean tenidos en esta rrazõ nĩ com̃o debdõrs nĩ com̃o fiadors Et ffizierõ pl̃yto estos ffrey",
+    "prediction": "What links here has multiple issues Please help improve it or discuss these issues on",
+    "confidence": 0.826235931366682,
+    "needs_review": false,
+    "metadata": {
+      "language": "Castilian",
+      "century": 13,
+      "region": "MainZone",
+      "script_type": "Semihybrida",
+      "shelfmark": "Paris, BnF, esp. 480",
+      "verse": "prose",
+      "genre": "Documents of practice",
+      "project": "HTRomance",
+      "line_type": "DefaultLine",
+      "gen_split": "train"
+    }
+  },
+  {
+    "index": 5,
+    "image_path": "outputs/trocr_baseline/images/catmus_line_005.jpg",
+    "ground_truth": "esteuã ⁊ ffrey Esteuã ꝑez por ssi ⁊ por todos los otͦs ffrey ⟦ ⟧ del ospital q̃casã alos  dich̃s pͦ delas cob̃as ⁊ Sanch̃ ꝑez del arrendamiẽto q̃ ffue ffech̃ a ffrey",
+    "prediction": "\" AUSTRALIAN GENERAL ASSEMBLY OF THE Government of Australia",
+    "confidence": 0.2987687170971185,
+    "needs_review": true,
+    "metadata": {
+      "language": "Castilian",
+      "century": 13,
+      "region": "MainZone",
+      "script_type": "Semihybrida",
+      "shelfmark": "Paris, BnF, esp. 480",
+      "verse": "prose",
+      "genre": "Documents of practice",
+      "project": "HTRomance",
+      "line_type": "DefaultLine",
+      "gen_split": "train"
+    }
+  }
+]

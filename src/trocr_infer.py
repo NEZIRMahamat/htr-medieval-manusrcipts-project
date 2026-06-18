@@ -22,7 +22,7 @@ DEFAULT_DATASET_NAME = "CATMuS/medieval"
 DEFAULT_CONFIG = "default"
 DEFAULT_SPLIT = "train"
 DEFAULT_MODEL_NAME = "microsoft/trocr-base-handwritten"
-DEFAULT_OUTPUT_DIR = Path("outputs") / "trocr_baseline"
+DEFAULT_OUTPUT_DIR = Path("trocr_outputs") / "trocr_baseline"
 DATASETS_SERVER = "https://datasets-server.huggingface.co"
 
 
