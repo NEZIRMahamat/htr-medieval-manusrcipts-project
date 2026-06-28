@@ -33,11 +33,11 @@ data/segment_data
 
 Local split sizes:
 
-| Split | Pages |
-| --- | ---: |
-| `train` | 1,336 |
-| `validation` | 191 |
-| `test` | 178 |
+| Split          | Pages |
+| -------------- | ----: |
+| `train`      | 1,336 |
+| `validation` |   191 |
+| `test`       |   178 |
 
 The model uses only line objects from the CATMuS annotations:
 
@@ -77,16 +77,16 @@ mask:  256 x 256 x 1
 
 Training setup used locally:
 
-| Parameter | Value |
-| --- | ---: |
-| train pages | 480 |
-| validation pages | 60 |
-| epochs | 15 |
-| batch size | 4 |
-| optimizer | AdamW |
-| learning rate | 1e-4 |
-| training hardware | CPU |
-| training time | 91.51 min |
+| Parameter         |     Value |
+| ----------------- | --------: |
+| train pages       |       480 |
+| validation pages  |        60 |
+| epochs            |        15 |
+| batch size        |         4 |
+| optimizer         |     AdamW |
+| learning rate     |      1e-4 |
+| training hardware |       CPU |
+| training time     | 91.51 min |
 
 More details are documented in:
 
@@ -98,23 +98,23 @@ MODEL_CARD.md
 
 Validation on 60 pages:
 
-| Metric | Value |
-| --- | ---: |
-| Dice | 0.9748 |
-| IoU | 0.9513 |
+| Metric    |  Value |
+| --------- | -----: |
+| Dice      | 0.9748 |
+| IoU       | 0.9513 |
 | Precision | 0.9767 |
-| Recall | 0.9736 |
-| F1 | 0.9748 |
+| Recall    | 0.9736 |
+| F1        | 0.9748 |
 
 Test on 60 pages:
 
-| Metric | Value |
-| --- | ---: |
-| Dice | 0.9379 |
-| IoU | 0.8849 |
+| Metric    |  Value |
+| --------- | -----: |
+| Dice      | 0.9379 |
+| IoU       | 0.8849 |
 | Precision | 0.9296 |
-| Recall | 0.9473 |
-| F1 | 0.9379 |
+| Recall    | 0.9473 |
+| F1        | 0.9379 |
 
 Project target:
 
@@ -157,15 +157,15 @@ src/normalize_data_contract.py
 
 Main responsibilities:
 
-| File | Role |
-| --- | --- |
-| `src/dataset.py` | dataset download/load/audit helpers |
-| `src/utils.py` | mask generation and preprocessing |
-| `src/model.py` | U-Net model, losses, metrics |
-| `src/train.py` | segmentation training |
-| `src/evaluate.py` | validation/test evaluation and line prediction JSON |
-| `src/crops.py` | crop generation from predicted line bboxes |
-| `src/data_contract_json.py` | segmentation JSON schema |
+| File                               | Role                                                |
+| ---------------------------------- | --------------------------------------------------- |
+| `src/dataset.py`                 | dataset download/load/audit helpers                 |
+| `src/utils.py`                   | mask generation and preprocessing                   |
+| `src/model.py`                   | U-Net model, losses, metrics                        |
+| `src/train.py`                   | segmentation training                               |
+| `src/evaluate.py`                | validation/test evaluation and line prediction JSON |
+| `src/crops.py`                   | crop generation from predicted line bboxes          |
+| `src/data_contract_json.py`      | segmentation JSON schema                            |
 | `src/normalize_data_contract.py` | normalize and validate final segmentation contracts |
 
 ## How To Run
