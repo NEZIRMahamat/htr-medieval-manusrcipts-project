@@ -1,18 +1,25 @@
-from tensorflow.keras.layers import (
+"""
+Model definition for U-Net architecture using TensorFlow and Keras.
+This module defines the U-Net model architecture, including the encoder and decoder blocks,
+as well as the loss functions and metrics used for training and evaluation.
+Objectives:
+- Define the U-Net architecture for image segmentation tasks.
+- Implement encoder and decoder blocks with convolutional layers, batch normalization, and dropout.
+- Provide loss functions (Dice loss, combined loss) and metrics (Dice coefficient, Mean IoU) for model evaluation.
+Author: Nezir Abakar
+"""
+
+from tensorflow.keras.layers import ( # Type : ignore
     BatchNormalization,
     Dropout,
     Input, 
     Conv2D, 
     MaxPooling2D,
-    UpSampling2D, 
     Conv2DTranspose, 
     concatenate 
     )
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import AdamW
-from tensorflow.keras.losses import MeanSquaredError
-from tensorflow.keras.metrics import MeanIoU 
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
+from tensorflow.keras.models import Model # Type : ignore
+from tensorflow.keras.optimizers import AdamW # Type : ignore
 import tensorflow as tf
 
 

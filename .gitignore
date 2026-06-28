@@ -2,15 +2,21 @@
 __pycache__/
 *.py[codz]
 *$py.class
+.agents/
 
 # C extensions
 *.so
 
 # Dossier & fichiers local
 data/
-outputs/
 notes/
-src/001_scripts_collab_kaggle.ipynb
+presentation/
+outputs/segmentation/crops_line/
+outputs/segmentation/crops_line.zip
+outputs/segmentation/checkpoints/
+outputs/segmentation/images/
+outputs/segmentation/logs/
+outputs/segmentation/masks/
 
 
 # Distribution / packaging

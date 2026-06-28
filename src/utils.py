@@ -14,9 +14,10 @@ from PIL import Image as PILImage, ImageDraw
 from scipy.ndimage import label
 
 try:
-    from .dataset import data_dir, outputs_dir, load_data_from_dir
+    from src.dataset import data_dir, outputs_dir, load_data_from_dir
 except ImportError:
     from dataset import data_dir, outputs_dir, load_data_from_dir
+
 
 
 DEFAULT_IMAGE_SIZE = (256, 256)  # (height, width)
@@ -242,6 +243,9 @@ def preprocess_images_and_masks(
     return images, masks
 
 
+
+# ------ Teste simple pour générer quelques masques de lignes 
+# et sauvegarder dans le disque (présentation résultat d'une image de masque de lignes)
 def batch_generate_lines_masks(
     dataset,
     split: str = "train",
@@ -286,34 +290,13 @@ def batch_generate_lines_masks(
     return masks
 
 
-def detect_saturated_zones(
-    image: np.ndarray,
-    threshold_saturation: int = 250,
-    surface_min: int = 100,
-) -> list[dict]:
-    """
-    Detect very bright connected regions in an image.
-    """
-    mask_saturated = np.all(image >= threshold_saturation, axis=2).astype(np.uint8) * 255
-    labeled_array, num_features = label(mask_saturated)
 
-    critical_regions = []
-    for i in range(1, num_features + 1):
-        zone = labeled_array == i
-        if np.sum(zone) >= surface_min:
-            coords = np.argwhere(zone)
-            y_min, x_min = coords.min(axis=0)
-            y_max, x_max = coords.max(axis=0)
-            critical_regions.append(
-                {
-                    "bbox": (x_min, y_min, x_max, y_max),
-                    "surface": int(np.sum(zone)),
-                }
-            )
-
-    return critical_regions
-
-
+# Génération des masques de lignes pour 5 images du split "train", 
+# juste pour montrer le résultat et vérifier que le pipeline fonctionne correctement.
+# Sinon, le pipeline gère la génération des masques 
+# à la volée pendant l'entrainement, sans stocker les masques sur le disque.
+# donc les fonctions `batch_generate_lines_masks`, `save_masks_to_disk` 
+# et `main_generate_line_masks` sont surtout pour le debug et la visualisation.
 def main_generate_line_masks() -> None:
     """
     Generate and visualize a few line masks for quick debugging.

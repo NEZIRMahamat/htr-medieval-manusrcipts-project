@@ -1,0 +1,23 @@
+﻿{
+    "sealed_at_utc":  "2026-06-28T13:24:40.9337931Z",
+    "test_dir":  "data/segment_data/test",
+    "file_count":  3,
+    "global_sha256":  "07e3e5a02b09c57e8df42be272b51931bab017a6bec686aeea03e1157cc92c80",
+    "files":  [
+                  {
+                      "path":  "data/segment_data/test/data-00000-of-00001.arrow",
+                      "sha256":  "0616faafda87b7f1998b7479928c21589aba47a7d38b212faeef90afd3207ed1",
+                      "size_bytes":  333449464
+                  },
+                  {
+                      "path":  "data/segment_data/test/dataset_info.json",
+                      "sha256":  "912bf02b3251dabfd59a3ba08fb0c3d31e525f33c99de39ad3f9384503104874",
+                      "size_bytes":  358633
+                  },
+                  {
+                      "path":  "data/segment_data/test/state.json",
+                      "sha256":  "51f4852ca36ae4adff3320b35890ab38804b09f78a6aa004980156f0e8c0c211",
+                      "size_bytes":  249
+                  }
+              ]
+}

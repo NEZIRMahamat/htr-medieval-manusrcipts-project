@@ -1,3 +1,8 @@
+"""
+Module for training a U-Net model on the CATMuS line segmentation dataset.
+"""
+
+
 from __future__ import annotations
 
 import argparse
@@ -18,6 +23,7 @@ from utils import (
     select_split_subset,
     preprocess_images_and_masks, # pour train sur le dataset global
 )
+
 
 
 def configure_tensorflow() -> None:
@@ -179,7 +185,7 @@ def train_unet_model(
     if model_dir:
         os.makedirs(model_dir, exist_ok=True)
 
-    log_dir = os.path.join("outputs", "logs")
+    log_dir = os.path.join("outputs", "segmentation", "logs")
     os.makedirs(log_dir, exist_ok=True)
 
     callbacks = [
@@ -256,7 +262,7 @@ def visualize_history(history: tf.keras.callbacks.History) -> None:
     plt.tight_layout()
     plt.show()
 
-## ------ Main, debug code, CLI , rapide ------
+## ------ Main, debug code, CLI ------
 def main_train_model(running_mode: str = "debug",) -> None:
     """
     Train the U-Net model with a memory-safe preprocessing pipeline.
@@ -266,7 +272,7 @@ def main_train_model(running_mode: str = "debug",) -> None:
     configure_tensorflow()
 
     # Arguments en dur pour le debug
-    model_save_path = os.path.join("outputs", "checkpoints", "unet-segmentation.keras")
+    model_save_path = os.path.join("outputs", "segmentation", "checkpoints", "unet-segmentation.keras")
     dataset_path = os.path.join("data", "segment_data")
     batch_size = 4 # 4 pour reduire la memoire RAM
     epochs = 15
@@ -312,9 +318,9 @@ def main_train_model(running_mode: str = "debug",) -> None:
         model_save_path=model_save_path,
         running_mode=running_mode,
     )
-    # Save training history to a text file
+    # Save training history to a json file
     run_version = f"v_{time.strftime('%M%S')}" # v_minutesseconds like v_2233, minutes : 22, seconds: 33
-    save_loss_and_metrics(history, output_dir=os.path.join("outputs", "metrics"), run_version=run_version)
+    save_loss_and_metrics(history, output_dir=os.path.join("outputs", "segmentation", "metrics"), run_version=run_version)
 
     # visualize_history(history)
 

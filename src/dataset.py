@@ -112,23 +112,6 @@ def audit_dataset(dataset):
         print(f"  Types: {sorted(set(object_types))}")
         print(f"  Categories: {sorted(set(categories))}")
 
-        # Intéressant pour manipuler les polygones pour la segmentation (ou juste checks info ++)
-        # id = objects.get("id", [])
-        # bboxes = objects.get("bbox", [])
-        # polygons = objects.get("polygons", [])
-        # parent = objects.get("parent", [])
-        # Sortie
-        # Exemple : 4
-        #   Types: ['block', 'line']
-        #   Categories: ['DefaultLine', 'DropCapitalZone', 'HeadingLine', 'MainZone', 'NumberingZone', 'RunningTitleZone'] (et autres aussi, car test audit sur 5 images seulement)
-        #  Polygones : [[x1, y1, x2, y2, x3, y3, ...], [...], ...] (pour chaque objet)
-        # Exemple 5:
-        #   Taille image: (3018, 3836)
-        #   Nom du fichier image: page-005-of-075.jpg
-        #   Nom mask temporaire: train_000004_page-005-of-075_mask.png
-        #   Nombre d'objets: 97
-        #   Types: ['block', 'line']
-        #   Categories: ['DefaultLine', 'MainZone', 'MarginTextZone', 'RunningTitleZone']
 
 def visualize_dataset_audit(dataset, num_examples=5):
     """
@@ -162,10 +145,13 @@ def main_audit():
     audit_dataset(dataset)
     visualize_dataset_audit(dataset, num_examples=5)
 
-## ------ SCELLAGE DATASET TEST
+## ------ Dataset test scellé avec code PowerShell 
 
-# étape final : sceller le dataset test pour éviter les fuites de données
-# Evaluation du modèle sur le dataset test (only après l'entrainement et la validation)
+"""
+Dataset test scellé avec PowerShell 
+Laisse le dataset test intact pour éviter les fuites de données.
+Dataset avec empreinte digitale (hash) pour garantir l'intégrité et la non-modification.
+"""
 
 
 if __name__ == "__main__":
