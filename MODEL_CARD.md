@@ -19,6 +19,22 @@ The model predicts a binary mask:
 
 The predicted mask is post-processed into line geometries: `bbox`, rectangular `polygon`, `reading_order`, confidence score, and line crops.
 
+## Deployment
+
+Hugging Face model repository:
+
+```text
+https://huggingface.co/nzIng/unet-manuscripts-segmentation/tree/main
+```
+
+Hugging Face Gradio Space:
+
+```text
+https://huggingface.co/spaces/nzIng/unet-manuscripts-segmentation-app
+```
+
+The model repository hosts the exported Keras checkpoint and a simple inference script. The Gradio Space exposes the model through a web interface that displays the input page, the segmented page, the predicted mask, line crops, and a downloadable JSON output.
+
 ## Training Data
 
 Dataset: `CATMuS/medieval-segmentation`

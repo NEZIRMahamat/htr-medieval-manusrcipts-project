@@ -94,6 +94,23 @@ More details are documented in:
 MODEL_CARD.md
 ```
 
+## Hugging Face Deployment
+
+Model repository:
+
+```text
+https://huggingface.co/nzIng/unet-manuscripts-segmentation/tree/main
+```
+
+Gradio Space:
+
+```text
+https://huggingface.co/spaces/nzIng/unet-manuscripts-segmentation-app
+```
+
+The model repository contains the exported Keras checkpoint and a simple inference script.
+The Gradio Space provides a web interface to upload a manuscript page and visualize the predicted line segmentation.
+
 ## Evaluation Results
 
 Validation on 60 pages:
