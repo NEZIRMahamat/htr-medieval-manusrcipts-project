@@ -27,7 +27,7 @@ from typing import Any
 from PIL import Image as PILImage
 
 try:
-    from src.utils import load_segmentation_dataset
+    from src.segmentation.utils import load_segmentation_dataset
 except ImportError:
     from utils import load_segmentation_dataset
 

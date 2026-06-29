@@ -10,8 +10,8 @@ import os
 from datasets import Image as HFImage
 
 try:
-    from src.dataset import outputs_dir
-    from src.utils import get_image_file_name, load_segmentation_dataset, select_split_subset
+    from src.segmentation.dataset import outputs_dir
+    from src.segmentation.utils import get_image_file_name, load_segmentation_dataset, select_split_subset
 except ImportError:
     from dataset import outputs_dir
     from utils import get_image_file_name, load_segmentation_dataset, select_split_subset

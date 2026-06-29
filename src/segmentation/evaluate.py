@@ -16,8 +16,8 @@ from datasets import Image as HFImage
 from scipy.ndimage import find_objects, label
 
 try:
-    from src.model import combined_loss, dice_coefficient, mean_iou
-    from src.utils import (
+    from src.segmentation.model import combined_loss, dice_coefficient, mean_iou
+    from src.segmentation.utils import (
         DEFAULT_IMAGE_SIZE,
         get_image_file_name,
         load_segmentation_dataset,

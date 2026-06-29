@@ -30,7 +30,7 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 try:
-    from src.data_contract_json import (
+    from src.segmentation.data_contract_json import (
         DATA_CONTRACT_NAME,
         DATA_CONTRACT_VERSION,
         SEGMENTATION_DATA_CONTRACT_SCHEMA,

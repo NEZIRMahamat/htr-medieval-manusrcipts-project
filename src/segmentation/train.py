@@ -15,14 +15,24 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 
-from model import compile_unet_model
-from utils import (
-    DEFAULT_IMAGE_SIZE,
-    load_segmentation_dataset,
-    iter_preprocessed_images_and_masks,
-    select_split_subset,
-    preprocess_images_and_masks, # pour train sur le dataset global
-)
+try:
+    from src.segmentation.model import compile_unet_model
+    from src.segmentation.utils import (
+        DEFAULT_IMAGE_SIZE,
+        load_segmentation_dataset,
+        iter_preprocessed_images_and_masks,
+        select_split_subset,
+        preprocess_images_and_masks, # pour train sur le dataset global
+    )
+except ImportError:
+    from model import compile_unet_model
+    from utils import (
+        DEFAULT_IMAGE_SIZE,
+        load_segmentation_dataset,
+        iter_preprocessed_images_and_masks,
+        select_split_subset,
+        preprocess_images_and_masks, # pour train sur le dataset global
+    )
 
 
 

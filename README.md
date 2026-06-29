@@ -145,28 +145,30 @@ Global SHA-256:
 ## Main Source Files
 
 ```text
-src/dataset.py
-src/utils.py
-src/model.py
-src/train.py
-src/evaluate.py
-src/crops.py
-src/data_contract_json.py
-src/normalize_data_contract.py
+src/segmentation/dataset.py
+src/segmentation/utils.py
+src/segmentation/model.py
+src/segmentation/train.py
+src/segmentation/evaluate.py
+src/segmentation/crops.py
+src/segmentation/data_contract_json.py
+src/segmentation/normalize_data_contract.py
+src/segmentation/save_original_images.py
 ```
 
 Main responsibilities:
 
-| File                               | Role                                                |
-| ---------------------------------- | --------------------------------------------------- |
-| `src/dataset.py`                 | dataset download/load/audit helpers                 |
-| `src/utils.py`                   | mask generation and preprocessing                   |
-| `src/model.py`                   | U-Net model, losses, metrics                        |
-| `src/train.py`                   | segmentation training                               |
-| `src/evaluate.py`                | validation/test evaluation and line prediction JSON |
-| `src/crops.py`                   | crop generation from predicted line bboxes          |
-| `src/data_contract_json.py`      | segmentation JSON schema                            |
-| `src/normalize_data_contract.py` | normalize and validate final segmentation contracts |
+| File                                            | Role                                                |
+| ----------------------------------------------- | --------------------------------------------------- |
+| `src/segmentation/dataset.py`                   | dataset download/load/audit helpers                 |
+| `src/segmentation/utils.py`                     | mask generation and preprocessing                   |
+| `src/segmentation/model.py`                     | U-Net model, losses, metrics                        |
+| `src/segmentation/train.py`                     | segmentation training                               |
+| `src/segmentation/evaluate.py`                  | validation/test evaluation and line prediction JSON |
+| `src/segmentation/crops.py`                     | crop generation from predicted line bboxes          |
+| `src/segmentation/data_contract_json.py`        | segmentation JSON schema                            |
+| `src/segmentation/normalize_data_contract.py`   | normalize and validate final segmentation contracts |
+| `src/segmentation/save_original_images.py`      | save original page images for debug/inspection      |
 
 ## How To Run
 
@@ -175,25 +177,25 @@ Run from the project root.
 Train the segmentation model:
 
 ```powershell
-venv\Scripts\python.exe -B src\train.py
+venv\Scripts\python.exe -B src\segmentation\train.py
 ```
 
 Evaluate the current checkpoint on the configured split:
 
 ```powershell
-venv\Scripts\python.exe -B src\evaluate.py
+venv\Scripts\python.exe -B src\segmentation\evaluate.py
 ```
 
 Generate crops from predictions:
 
 ```powershell
-venv\Scripts\python.exe -B src\crops.py
+venv\Scripts\python.exe -B src\segmentation\crops.py
 ```
 
 Generate and validate segmentation contracts:
 
 ```powershell
-venv\Scripts\python.exe -B src\normalize_data_contract.py
+venv\Scripts\python.exe -B src\segmentation\normalize_data_contract.py
 ```
 
 Seal the segmentation test split:

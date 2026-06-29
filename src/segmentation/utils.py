@@ -14,7 +14,7 @@ from PIL import Image as PILImage, ImageDraw
 from scipy.ndimage import label
 
 try:
-    from src.dataset import data_dir, outputs_dir, load_data_from_dir
+    from src.segmentation.dataset import data_dir, outputs_dir, load_data_from_dir
 except ImportError:
     from dataset import data_dir, outputs_dir, load_data_from_dir
 
